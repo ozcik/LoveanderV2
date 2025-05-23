@@ -5,53 +5,45 @@
   <title>Offline Calendar PWA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+  <div class="container">
+    <h1>Offline Calendar PWA</h1>
+    <div>
+      <button id="prevMonth">Previous Month</button>
+      <button id="nextMonth">Next Month</button>
+    </div>
+    <div id="calendar"></div>
 
-  <!-- Load seasonal stylesheet dynamically -->
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+  </div>
+
   <script>
-    (function() {
-      const month = new Date().getMonth();
+    // Function to update the seasonal theme CSS based on current month
+    function updateTheme(month) {
       let theme;
       if ([2, 3, 4].includes(month)) theme = 'spring';
       else if ([5, 6, 7].includes(month)) theme = 'summer';
       else if ([8, 9, 10].includes(month)) theme = 'autumn';
       else theme = 'winter';
 
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = `themes/${theme}.css`;
-      document.head.appendChild(link);
-    })();
-  </script>
-</head>
-<body>
-  <div class="container">
-    <h1>Offline Calendar PWA</h1>
-    <div>
-      <button id="prevMonth" aria-label="Previous Month">Previous Month</button>
-      <button id="nextMonth" aria-label="Next Month">Next Month</button>
-    </div>
-    <div id="calendar" role="grid" aria-label="Calendar"></div>
+      let themeLink = document.getElementById('theme-css');
+      if (!themeLink) {
+        themeLink = document.createElement('link');
+        themeLink.rel = 'stylesheet';
+        themeLink.id = 'theme-css';
+        document.head.appendChild(themeLink);
+      }
+      themeLink.href = `themes/${theme}.css`;
+    }
 
-    <div class="progress-container" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-      <div class="progress-bar" id="progress-bar"></div>
-    </div>
-  </div>
-
-  <script>
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ];
-
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"];
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
-
-    let doneDays;
-    try {
-      doneDays = new Set(JSON.parse(localStorage.getItem('doneDays') || "[]"));
-    } catch {
-      doneDays = new Set();
-    }
+    let doneDays = new Set(JSON.parse(localStorage.getItem('doneDays') || "[]"));
 
     function saveDoneDays() {
       localStorage.setItem('doneDays', JSON.stringify(Array.from(doneDays)));
@@ -82,7 +74,7 @@
       for(let day=1; day<=daysCount; day++) {
         let doy = getDayOfYear(2001, currentMonth, day).toString();
         let classes = doneDays.has(doy) ? 'calendar-day done' : 'calendar-day';
-        html += `<td class="${classes}" data-day="${doy}" role="gridcell" tabindex="0">${day}</td>`;
+        html += `<td class="${classes}" data-day="${doy}">${day}</td>`;
         dayOfWeekCounter++;
         if(dayOfWeekCounter % 7 === 0) html += '</tr><tr>';
       }
@@ -106,14 +98,13 @@
       });
 
       updateProgressBar();
+      updateTheme(currentMonth); // <-- update theme on every render
     }
 
     function updateProgressBar() {
       const totalDays = 365;
       let percent = (doneDays.size / totalDays) * 100;
-      const progressBar = document.getElementById('progress-bar');
-      progressBar.style.width = percent + '%';
-      progressBar.parentElement.setAttribute('aria-valuenow', percent.toFixed(0));
+      document.getElementById('progress-bar').style.width = percent + '%';
     }
 
     document.getElementById('prevMonth').onclick = () => {
