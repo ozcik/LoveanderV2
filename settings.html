@@ -25,15 +25,19 @@
       font-size: 1.5rem;
       margin-bottom: 24px;
       color: #333;
+      text-align: center;
     }
     .settings-section {
-      margin-bottom: 24px;
+      margin-bottom: 28px;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 16px 14px 10px 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
     }
     .settings-section label {
       font-size: 1rem;
       color: #444;
-      display: block;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .settings-section input[type="checkbox"] {
       margin-right: 8px;
@@ -65,6 +69,7 @@
     .bottom-nav a.active {
       color: #38bdf8;
       font-weight: bold;
+      background: #e5e7eb;
     }
     .bottom-nav svg {
       width: 24px;
@@ -72,20 +77,37 @@
       margin-bottom: 2px;
       display: block;
     }
+    @media (max-width: 500px) {
+      .settings-app {
+        padding: 10px 2px 18px 2px;
+        margin-bottom: 80px;
+      }
+      .settings-app h1 {
+        font-size: 1.1rem;
+      }
+    }
     /* Dark mode styles */
     body.dark-mode {
       background: #18181b;
       color: #f4f4f5;
     }
     body.dark-mode .settings-app {
-      background: #242424;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+      background: #23232b;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    body.dark-mode .settings-app h1 {
+      color: #f4f4f5;
+    }
+    body.dark-mode .settings-section {
+      background: #18181b;
+      color: #e4e4e7;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     }
     body.dark-mode .settings-section label {
       color: #e4e4e7;
     }
     body.dark-mode .bottom-nav {
-      background: #111;
+      background: #18181b;
       border-top: 1px solid #333;
     }
     body.dark-mode .bottom-nav a {
@@ -93,6 +115,10 @@
     }
     body.dark-mode .bottom-nav a.active {
       color: #38bdf8;
+      background: #23232b;
+    }
+    body.dark-mode .bottom-nav svg {
+      color: #a1a1aa;
     }
   </style>
 </head>
@@ -100,18 +126,20 @@
   <div class="settings-app">
     <h1>Settings</h1>
     <div class="settings-section">
-      <label>
+      <label style="font-weight:500;display:block;margin-bottom:10px;">Dark Mode</label>
+      <label style="display:flex;align-items:center;gap:8px;">
         <input type="checkbox" id="darkModeToggle" />
-        Dark Mode (demo only)
+        <span>Enable dark mode</span>
       </label>
     </div>
     <div class="settings-section">
+      <label style="font-weight:500;display:block;margin-bottom:10px;">Progress</label>
       <button id="resetProgress" style="padding:8px 16px;border-radius:6px;border:none;background:#f87171;color:#fff;cursor:pointer;">
         Reset Progress
       </button>
     </div>
     <div class="settings-section">
-      <label>Background Image for Each Season:</label>
+      <label style="font-weight:500;display:block;margin-bottom:10px;">Background Image for Each Season</label>
       <div style="margin-bottom:8px;">
         <label>Spring: <input type="file" accept="image/*" id="bgSpring"></label>
       </div>
@@ -126,7 +154,7 @@
       </div>
     </div>
     <div class="settings-section">
-      <label>Custom Completion Emojis for Each Season:</label>
+      <label style="font-weight:500;display:block;margin-bottom:10px;">Custom Completion Emojis for Each Season</label>
       <div style="margin-bottom:8px;">
         <label>Spring: <input type="text" id="emojiSpring" maxlength="8" style="width:4em;text-align:center;" placeholder="🌸"></label>
       </div>
