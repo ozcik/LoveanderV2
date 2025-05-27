@@ -633,21 +633,38 @@
       document.getElementById('progress-bar').style.width = percent + '%';
     }
 
+    // Save current month/year to localStorage
+    function saveCalendarView() {
+      localStorage.setItem('calendarView', JSON.stringify({ year: currentYear, month: currentMonth }));
+    }
+    // Load current month/year from localStorage if available
+    function loadCalendarView() {
+      const view = JSON.parse(localStorage.getItem('calendarView') || 'null');
+      if (view && typeof view.year === 'number' && typeof view.month === 'number') {
+        currentYear = view.year;
+        currentMonth = view.month;
+      } else {
+        currentYear = new Date().getFullYear();
+        currentMonth = new Date().getMonth();
+      }
+    }
+
     document.getElementById('prevMonth').onclick = () => {
       currentMonth--;
       if(currentMonth < 0) {
         currentMonth = 11;
         currentYear--;
       }
+      saveCalendarView();
       renderCalendar();
     };
-
     document.getElementById('nextMonth').onclick = () => {
       currentMonth++;
       if(currentMonth > 11) {
         currentMonth = 0;
         currentYear++;
       }
+      saveCalendarView();
       renderCalendar();
     };
 
@@ -695,6 +712,8 @@
       loadMonthNotes();
     };
 
+    // On page load, restore last viewed month/year
+    loadCalendarView();
     renderCalendar();
   </script>
   <!-- Month/Year Picker Popups -->
