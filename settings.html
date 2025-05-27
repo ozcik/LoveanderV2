@@ -72,6 +72,28 @@
       margin-bottom: 2px;
       display: block;
     }
+    /* Dark mode styles */
+    body.dark-mode {
+      background: #18181b;
+      color: #f4f4f5;
+    }
+    body.dark-mode .settings-app {
+      background: #242424;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+    body.dark-mode .settings-section label {
+      color: #e4e4e7;
+    }
+    body.dark-mode .bottom-nav {
+      background: #111;
+      border-top: 1px solid #333;
+    }
+    body.dark-mode .bottom-nav a {
+      color: #a1a1aa;
+    }
+    body.dark-mode .bottom-nav a.active {
+      color: #38bdf8;
+    }
   </style>
 </head>
 <body>
@@ -144,10 +166,62 @@
     </a>
   </nav>
   <script>
-    // Demo dark mode toggle (does not persist)
+    // Full dark mode logic
+    function applyDarkModeSetting() {
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      document.body.classList.toggle('dark-mode', isDark);
+      const bottomNav = document.querySelector('.bottom-nav');
+      const navLinks = document.querySelectorAll('.bottom-nav a');
+      const navSvgs = document.querySelectorAll('.bottom-nav svg');
+      if (isDark) {
+        document.documentElement.style.setProperty('--main-bg', '#18181b');
+        document.documentElement.style.setProperty('--main-contrast', '#f4f4f5');
+        document.documentElement.style.setProperty('--accent', '#38bdf8');
+        document.documentElement.style.setProperty('--accent-contrast', '#18181b');
+        if (bottomNav) {
+          bottomNav.style.background = '#111';
+          bottomNav.style.borderTop = '1px solid #333';
+          navLinks.forEach(a => a.style.color = '#a1a1aa');
+          navSvgs.forEach(svg => svg.style.color = '#a1a1aa');
+          navLinks.forEach(a => {
+            if (a.classList.contains('active')) {
+              a.style.background = '#23232b';
+              a.style.color = '#38bdf8';
+            } else {
+              a.style.background = 'transparent';
+            }
+          });
+        }
+      } else {
+        document.documentElement.style.setProperty('--main-bg', '#fff');
+        document.documentElement.style.setProperty('--main-contrast', '#333');
+        document.documentElement.style.setProperty('--accent', '#38bdf8');
+        document.documentElement.style.setProperty('--accent-contrast', '#fff');
+        if (bottomNav) {
+          bottomNav.style.background = '#fff';
+          bottomNav.style.borderTop = '1px solid #e5e7eb';
+          navLinks.forEach(a => a.style.color = '#64748b');
+          navSvgs.forEach(svg => svg.style.color = '#64748b');
+          navLinks.forEach(a => {
+            if (a.classList.contains('active')) {
+              a.style.background = '#e5e7eb';
+              a.style.color = '#38bdf8';
+            } else {
+              a.style.background = 'transparent';
+            }
+          });
+        }
+      }
+    }
     document.getElementById('darkModeToggle').addEventListener('change', function() {
-      document.body.style.background = this.checked ? '#222' : '#f4f6fb';
+      localStorage.setItem('darkMode', this.checked);
+      applyDarkModeSetting();
     });
+    // On load, set toggle and apply mode
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.getElementById('darkModeToggle').checked = true;
+    }
+    applyDarkModeSetting();
     // Reset progress
     document.getElementById('resetProgress').onclick = function() {
       if (confirm('Are you sure you want to reset your progress?')) {

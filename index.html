@@ -30,6 +30,8 @@
       border-radius: 16px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.08);
       padding: 24px 20px 32px 20px;
+      position: relative;
+      z-index: 2;
     }
     .calendar-header {
       display: flex;
@@ -42,6 +44,11 @@
       margin: 0;
       font-weight: 600;
       color: var(--main-contrast, #333);
+      transition: color 0.2s;
+    }
+    #monthYearLabel {
+      color: var(--main-contrast, #333);
+      transition: color 0.2s;
     }
     .calendar-nav button {
       background: var(--main-bg, #e3e8f0);
@@ -112,6 +119,7 @@
       justify-content: center;
       z-index: 100;
       box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
+      transition: background 0.2s;
     }
     .bottom-nav a {
       flex: 1;
@@ -120,7 +128,7 @@
       color: #64748b;
       text-decoration: none;
       font-size: 0.9rem;
-      transition: color 0.2s;
+      transition: color 0.2s, background 0.2s;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -128,12 +136,34 @@
     .bottom-nav a.active {
       color: #38bdf8;
       font-weight: bold;
+      background: #e5e7eb;
+      transition: background 0.2s;
     }
     .bottom-nav svg {
       width: 24px;
       height: 24px;
       margin-bottom: 2px;
       display: block;
+    }
+    body.dark-mode .calendar-header h1 {
+      color: var(--main-contrast, #f4f4f5);
+    }
+    body.dark-mode #monthYearLabel {
+      color: var(--main-contrast, #f4f4f5);
+    }
+    body.dark-mode .bottom-nav {
+      background: #18181b;
+      border-top: 1px solid #333;
+    }
+    body.dark-mode .bottom-nav a {
+      color: #a1a1aa;
+    }
+    body.dark-mode .bottom-nav a.active {
+      color: #38bdf8;
+      background: #23232b;
+    }
+    body.dark-mode .bottom-nav svg {
+      color: #a1a1aa;
     }
     @media (max-width: 500px) {
       .calendar-app {
@@ -144,9 +174,82 @@
         font-size: 1.1rem;
       }
     }
+
+    /* Dark mode styles */
+    body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    body.dark-mode .calendar-app {
+      background: #1e1e2e;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+    body.dark-mode .calendar-header h1 {
+      color: #e0e0e0;
+    }
+    body.dark-mode .calendar-nav button {
+      background: #2c2c3e;
+      color: #e0e0e0;
+    }
+    body.dark-mode .calendar-nav button:hover {
+      background: #38bdf8;
+      color: #18181b;
+    }
+    body.dark-mode #calendar th {
+      background: #2c2c3e;
+      color: #e0e0e0;
+    }
+    body.dark-mode #calendar td {
+      background: #1e1e2e;
+      color: #e0e0e0;
+    }
+    body.dark-mode .calendar-day:hover {
+      background: #2c2c3e;
+    }
+    body.dark-mode .calendar-day.done {
+      background: #38bdf8;
+      color: #18181b;
+    }
+    body.dark-mode .progress-container {
+      background: #333340;
+    }
+    body.dark-mode .progress-bar {
+      background: linear-gradient(90deg, #38bdf8 0%, #06b6d4 100%);
+    }
+    body.dark-mode .bottom-nav {
+      background: #18181b;
+      border-top: 1px solid #333;
+    }
+    body.dark-mode .bottom-nav a {
+      color: #e0e0e0;
+    }
+    body.dark-mode .bottom-nav a.active {
+      color: #38bdf8;
+      background: #23232b;
+    }
+    body.dark-mode .bottom-nav svg {
+      color: #e0e0e0;
+    }
+    .bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(24,24,27,0.55);
+      pointer-events: none;
+      z-index: 1;
+    }
+    body.dark-mode .bg-overlay {
+      display: block;
+    }
+    body:not(.dark-mode) .bg-overlay {
+      display: none;
+    }
   </style>
 </head>
 <body>
+    <div class="bg-overlay" style="display:none;"></div>
   <div class="calendar-app">
     <div class="calendar-header">
       <h1>Offline Calendar</h1>
@@ -197,6 +300,7 @@
       const navLinks = document.querySelectorAll('.bottom-nav a');
       const navSvgs = document.querySelectorAll('.bottom-nav svg');
       const root = document.documentElement;
+      const overlay = document.querySelector('.bg-overlay');
 
       if (!imgUrl) {
         root.style.setProperty('--main-bg', '#fff');
@@ -210,6 +314,7 @@
           navLinks.forEach(a => a.style.color = '#64748b');
           navSvgs.forEach(svg => svg.style.color = '#64748b');
         }
+        if (overlay) overlay.style.background = 'rgba(24,24,27,0.55)';
         return;
       }
       const img = new window.Image();
@@ -226,25 +331,42 @@
 
         // Calculate YIQ for contrast
         const yiq = (r*299 + g*587 + b*114) / 1000;
-        const textColor = yiq >= 128 ? '#222' : '#fff';
+        let textColor, navBg, navActiveBg, navText, navActiveText, overlayAlpha;
+        if (yiq >= 180) { // bright bg
+          textColor = '#18181b';
+          navBg = '#18181b';
+          navActiveBg = '#23232b';
+          navText = '#a1a1aa';
+          navActiveText = '#38bdf8';
+          overlayAlpha = 0.65;
+        } else { // dark bg
+          textColor = '#f4f4f5';
+          navBg = '#18181b';
+          navActiveBg = '#23232b';
+          navText = '#a1a1aa';
+          navActiveText = '#38bdf8';
+          overlayAlpha = 0.35;
+        }
         root.style.setProperty('--main-contrast', textColor);
-
-        // Accent color: use a slightly lighter or darker version of bgColor
-        // For simplicity, use a fixed accent or invert the bg color
-        const accent = yiq >= 128 ? '#38bdf8' : '#06b6d4';
-        const accentContrast = yiq >= 128 ? '#fff' : '#fff';
-        root.style.setProperty('--accent', accent);
-        root.style.setProperty('--accent-contrast', accentContrast);
-
+        root.style.setProperty('--accent', '#38bdf8');
+        root.style.setProperty('--accent-contrast', navBg);
         if (title) title.style.color = textColor;
         setMonthYearColor(textColor);
-
-        // Set bottom nav background and icon/text color
         if (bottomNav) {
-          bottomNav.style.background = bgColor;
-          navLinks.forEach(a => a.style.color = textColor);
-          navSvgs.forEach(svg => svg.style.color = textColor);
+          bottomNav.style.background = navBg;
+          navLinks.forEach(a => a.style.color = navText);
+          navSvgs.forEach(svg => svg.style.color = navText);
+          // Set active nav color
+          navLinks.forEach(a => {
+            if (a.classList.contains('active')) {
+              a.style.background = navActiveBg;
+              a.style.color = navActiveText;
+            } else {
+              a.style.background = 'transparent';
+            }
+          });
         }
+        if (overlay) overlay.style.background = `rgba(24,24,27,${overlayAlpha})`;
       };
       img.onerror = function() {
         root.style.setProperty('--main-bg', '#fff');
@@ -258,6 +380,7 @@
           navLinks.forEach(a => a.style.color = '#64748b');
           navSvgs.forEach(svg => svg.style.color = '#64748b');
         }
+        if (overlay) overlay.style.background = 'rgba(24,24,27,0.55)';
       };
     }
 
@@ -265,6 +388,22 @@
     function setMonthYearColor(color) {
       const monthYear = document.querySelector('#calendar > div');
       if (monthYear) monthYear.style.color = color;
+    }
+
+    // Show/hide overlay based on dark mode and background image
+    function updateOverlayVisibility() {
+      const overlay = document.querySelector('.bg-overlay');
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      const bgImages = JSON.parse(localStorage.getItem('seasonBgImages') || '{}');
+      let season = 'winter';
+      if ([2, 3, 4].includes(currentMonth)) season = 'spring';
+      else if ([5, 6, 7].includes(currentMonth)) season = 'summer';
+      else if ([8, 9, 10].includes(currentMonth)) season = 'autumn';
+      if (isDark && bgImages[season]) {
+        overlay.style.display = 'block';
+      } else {
+        overlay.style.display = 'none';
+      }
     }
 
     function updateTheme(month) {
@@ -292,6 +431,7 @@
         document.body.style.backgroundImage = '';
         document.querySelector('.calendar-app').style.background = '#fff';
       }
+      updateOverlayVisibility();
     }
 
     const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -374,6 +514,7 @@
       updateProgressBar();
       updateTheme(currentMonth); // <-- update theme on every render
       attachMonthYearEvents();
+      updateOverlayVisibility(); // <-- ensure overlay is updated
     }
 
     // --- Month/Year Picker Logic ---
@@ -428,6 +569,7 @@
       const next = document.getElementById('nextYearRange');
       if(prev) prev.onclick = function() { yearPickerStart -= 12; openYearPicker(); };
       if(next) next.onclick = function() { yearPickerStart += 12; openYearPicker(); };
+      updateOverlayVisibility(); // <-- ensure overlay is updated on load
     });
     function attachMonthYearEvents() {
       const monthLabel = document.getElementById('monthLabel');
@@ -465,6 +607,24 @@
         console.log('Service Worker Registered');
       });
     }
+
+    // --- Dark mode logic (copied from settings.html) ---
+    function applyDarkModeSetting() {
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      document.body.classList.toggle('dark-mode', isDark);
+      if (isDark) {
+        document.documentElement.style.setProperty('--main-bg', '#18181b');
+        document.documentElement.style.setProperty('--main-contrast', '#f4f4f5');
+        document.documentElement.style.setProperty('--accent', '#38bdf8');
+        document.documentElement.style.setProperty('--accent-contrast', '#18181b');
+      } else {
+        document.documentElement.style.setProperty('--main-bg', '#fff');
+        document.documentElement.style.setProperty('--main-contrast', '#333');
+        document.documentElement.style.setProperty('--accent', '#38bdf8');
+        document.documentElement.style.setProperty('--accent-contrast', '#fff');
+      }
+    }
+    applyDarkModeSetting();
 
     renderCalendar();
   </script>
