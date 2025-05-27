@@ -246,6 +246,50 @@
     body:not(.dark-mode) .bg-overlay {
       display: none;
     }
+    .notes-section {
+      margin-top: 28px;
+    }
+    .notes-section textarea {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      padding: 10px;
+      font-size: 1rem;
+      resize: vertical;
+      background: #f8fafc;
+      color: #333;
+      box-sizing: border-box;
+      margin-bottom: 6px;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+    }
+    body.dark-mode .notes-section textarea {
+      background: #23232b;
+      color: #f4f4f5;
+      border: 1px solid #333340;
+    }
+    .notes-section label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: 8px;
+      color: #444;
+    }
+    body.dark-mode .notes-section label {
+      color: #e4e4e7;
+    }
+    .notes-section button {
+      margin-top: 8px;
+      padding: 7px 18px;
+      border-radius: 6px;
+      border: none;
+      background: #38bdf8;
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .notes-section button:hover {
+      background: #0ea5e9;
+    }
   </style>
 </head>
 <body>
@@ -261,6 +305,11 @@
     <div id="calendar"></div>
     <div class="progress-container">
       <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="notes-section" style="margin-top:28px;">
+      <label for="monthNotes" style="font-weight:500;display:block;margin-bottom:8px;">Notes for <span id="notesMonthLabel"></span></label>
+      <textarea id="monthNotes" rows="3" style="width:100%;border-radius:8px;border:1px solid #e5e7eb;padding:10px;font-size:1rem;resize:vertical;"></textarea>
+      <button id="saveNotesBtn" style="margin-top:8px;padding:7px 18px;border-radius:6px;border:none;background:#38bdf8;color:#fff;cursor:pointer;">Save Notes</button>
     </div>
   </div>
 
@@ -625,6 +674,26 @@
       }
     }
     applyDarkModeSetting();
+
+    function getNotesKey(year, month) {
+      return `notes_${year}_${month}`;
+    }
+    function loadMonthNotes() {
+      document.getElementById('notesMonthLabel').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+      const notes = localStorage.getItem(getNotesKey(currentYear, currentMonth)) || '';
+      document.getElementById('monthNotes').value = notes;
+    }
+    document.getElementById('saveNotesBtn').onclick = function() {
+      const notes = document.getElementById('monthNotes').value;
+      localStorage.setItem(getNotesKey(currentYear, currentMonth), notes);
+      alert('Notes saved!');
+    };
+    // Call loadMonthNotes after calendar render
+    const originalRenderCalendar = renderCalendar;
+    renderCalendar = function() {
+      originalRenderCalendar.apply(this, arguments);
+      loadMonthNotes();
+    };
 
     renderCalendar();
   </script>

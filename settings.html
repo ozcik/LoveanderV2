@@ -120,6 +120,9 @@
     body.dark-mode .bottom-nav svg {
       color: #a1a1aa;
     }
+    .icon-btn { cursor:pointer; display:inline-flex; align-items:center; justify-content:center; border-radius:6px; padding:4px; transition:background 0.2s; }
+    .icon-btn:hover { background:#e0e7ef; }
+    body.dark-mode .icon-btn:hover { background:#23232b; }
   </style>
 </head>
 <body>
@@ -140,17 +143,41 @@
     </div>
     <div class="settings-section">
       <label style="font-weight:500;display:block;margin-bottom:10px;">Background Image for Each Season</label>
-      <div style="margin-bottom:8px;">
-        <label>Spring: <input type="file" accept="image/*" id="bgSpring"></label>
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:12px;">
+        <span style="width:70px;display:inline-block;">Spring:</span>
+        <label class="icon-upload">
+          <input type="file" accept="image/*" id="bgSpring" style="display:none;">
+          <span class="icon-btn" title="Upload Spring Image">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </span>
+        </label>
       </div>
-      <div style="margin-bottom:8px;">
-        <label>Summer: <input type="file" accept="image/*" id="bgSummer"></label>
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:12px;">
+        <span style="width:70px;display:inline-block;">Summer:</span>
+        <label class="icon-upload">
+          <input type="file" accept="image/*" id="bgSummer" style="display:none;">
+          <span class="icon-btn" title="Upload Summer Image">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </span>
+        </label>
       </div>
-      <div style="margin-bottom:8px;">
-        <label>Autumn: <input type="file" accept="image/*" id="bgAutumn"></label>
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:12px;">
+        <span style="width:70px;display:inline-block;">Autumn:</span>
+        <label class="icon-upload">
+          <input type="file" accept="image/*" id="bgAutumn" style="display:none;">
+          <span class="icon-btn" title="Upload Autumn Image">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </span>
+        </label>
       </div>
-      <div>
-        <label>Winter: <input type="file" accept="image/*" id="bgWinter"></label>
+      <div style="display:flex;align-items:center;gap:18px;">
+        <span style="width:70px;display:inline-block;">Winter:</span>
+        <label class="icon-upload">
+          <input type="file" accept="image/*" id="bgWinter" style="display:none;">
+          <span class="icon-btn" title="Upload Winter Image">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </span>
+        </label>
       </div>
     </div>
     <div class="settings-section">
@@ -299,6 +326,16 @@
     }
     document.getElementById('saveEmojis').onclick = saveSeasonEmojis;
     loadSeasonEmojis();
+
+    // Make icon button trigger file input
+    document.querySelectorAll('.icon-upload').forEach(function(label) {
+      const input = label.querySelector('input[type="file"]');
+      const btn = label.querySelector('.icon-btn');
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        input.click();
+      });
+    });
   </script>
 </body>
 </html>
