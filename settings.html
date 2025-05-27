@@ -88,6 +88,21 @@
         Reset Progress
       </button>
     </div>
+    <div class="settings-section">
+      <label>Background Image for Each Season:</label>
+      <div style="margin-bottom:8px;">
+        <label>Spring: <input type="file" accept="image/*" id="bgSpring"></label>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label>Summer: <input type="file" accept="image/*" id="bgSummer"></label>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label>Autumn: <input type="file" accept="image/*" id="bgAutumn"></label>
+      </div>
+      <div>
+        <label>Winter: <input type="file" accept="image/*" id="bgWinter"></label>
+      </div>
+    </div>
   </div>
   <nav class="bottom-nav">
     <a href="index.html" aria-label="Calendar">
@@ -125,6 +140,26 @@
         window.location.reload();
       }
     };
+
+    function handleBgInput(season, inputId) {
+      document.getElementById(inputId).addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          let bgImages = JSON.parse(localStorage.getItem('seasonBgImages') || '{}');
+          bgImages[season] = evt.target.result;
+          localStorage.setItem('seasonBgImages', JSON.stringify(bgImages));
+          alert(`Background image for ${season} updated!`);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    handleBgInput('spring', 'bgSpring');
+    handleBgInput('summer', 'bgSummer');
+    handleBgInput('autumn', 'bgAutumn');
+    handleBgInput('winter', 'bgWinter');
   </script>
 </body>
 </html>

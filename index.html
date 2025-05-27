@@ -12,6 +12,10 @@
       background: #f4f6fb;
       margin: 0;
       padding: 0;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: background 0.4s;
     }
     .calendar-app {
       max-width: 420px;
@@ -179,11 +183,11 @@
   <script>
     // Function to update the seasonal theme CSS based on current month
     function updateTheme(month) {
-      let theme;
-      if ([2, 3, 4].includes(month)) theme = 'spring';
-      else if ([5, 6, 7].includes(month)) theme = 'summer';
-      else if ([8, 9, 10].includes(month)) theme = 'autumn';
-      else theme = 'winter';
+      let theme, season;
+      if ([2, 3, 4].includes(month)) { theme = 'spring'; season = 'spring'; }
+      else if ([5, 6, 7].includes(month)) { theme = 'summer'; season = 'summer'; }
+      else if ([8, 9, 10].includes(month)) { theme = 'autumn'; season = 'autumn'; }
+      else { theme = 'winter'; season = 'winter'; }
 
       let themeLink = document.getElementById('theme-css');
       if (!themeLink) {
@@ -193,6 +197,14 @@
         document.head.appendChild(themeLink);
       }
       themeLink.href = `themes/${theme}.css`;
+
+      // Set background image if set in localStorage
+      const bgImages = JSON.parse(localStorage.getItem('seasonBgImages') || '{}');
+      if (bgImages[season]) {
+        document.body.style.backgroundImage = `url('${bgImages[season]}')`;
+      } else {
+        document.body.style.backgroundImage = '';
+      }
     }
 
     const monthNames = ["January", "February", "March", "April", "May", "June",
