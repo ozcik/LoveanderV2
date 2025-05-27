@@ -318,8 +318,9 @@
     function renderCalendar() {
       let firstDay = new Date(currentYear, currentMonth, 1).getDay();
       let daysCount = daysInMonth(currentYear, currentMonth);
-      let html = `<div style="text-align:center;font-size:1.1rem;font-weight:500;margin-bottom:8px;">
-        ${monthNames[currentMonth]} ${currentYear}
+      let html = `<div id="monthYearLabel" style="text-align:center;font-size:1.1rem;font-weight:500;margin-bottom:8px;cursor:pointer;">
+        <span id="monthLabel" style="text-decoration:underline dotted; cursor:pointer;">${monthNames[currentMonth]}</span>
+        <span id="yearLabel" style="text-decoration:underline dotted; cursor:pointer;">${currentYear}</span>
       </div>`;
       html += `<table><thead><tr>
         <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th>
@@ -356,6 +357,67 @@
 
       updateProgressBar();
       updateTheme(currentMonth); // <-- update theme on every render
+      attachMonthYearEvents();
+    }
+
+    // --- Month/Year Picker Logic ---
+    function openMonthPicker() {
+      const popup = document.getElementById('monthPickerPopup');
+      const btns = document.getElementById('monthPickerBtns');
+      btns.innerHTML = '';
+      monthNames.forEach((name, idx) => {
+        const btn = document.createElement('button');
+        btn.textContent = name;
+        btn.style.cssText = 'padding:8px;border:none;border-radius:6px;background:#e5e7eb;cursor:pointer;';
+        if (idx === currentMonth) btn.style.background = '#38bdf8', btn.style.color = '#fff';
+        btn.onclick = () => {
+          currentMonth = idx;
+          closeMonthPicker();
+          renderCalendar();
+        };
+        btns.appendChild(btn);
+      });
+      popup.style.display = 'flex';
+    }
+    function closeMonthPicker() {
+      document.getElementById('monthPickerPopup').style.display = 'none';
+    }
+
+    let yearPickerStart = currentYear - (currentYear % 12);
+    function openYearPicker() {
+      const popup = document.getElementById('yearPickerPopup');
+      const btns = document.getElementById('yearPickerBtns');
+      const rangeLabel = document.getElementById('yearRangeLabel');
+      btns.innerHTML = '';
+      for (let y = yearPickerStart; y < yearPickerStart + 12; y++) {
+        const btn = document.createElement('button');
+        btn.textContent = y;
+        btn.style.cssText = 'padding:8px;border:none;border-radius:6px;background:#e5e7eb;cursor:pointer;';
+        if (y === currentYear) btn.style.background = '#38bdf8', btn.style.color = '#fff';
+        btn.onclick = () => {
+          currentYear = y;
+          closeYearPicker();
+          renderCalendar();
+        };
+        btns.appendChild(btn);
+      }
+      rangeLabel.textContent = `${yearPickerStart} - ${yearPickerStart + 11}`;
+      popup.style.display = 'flex';
+    }
+    function closeYearPicker() {
+      document.getElementById('yearPickerPopup').style.display = 'none';
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const prev = document.getElementById('prevYearRange');
+      const next = document.getElementById('nextYearRange');
+      if(prev) prev.onclick = function() { yearPickerStart -= 12; openYearPicker(); };
+      if(next) next.onclick = function() { yearPickerStart += 12; openYearPicker(); };
+    });
+    function attachMonthYearEvents() {
+      const monthLabel = document.getElementById('monthLabel');
+      const yearLabel = document.getElementById('yearLabel');
+      if (monthLabel) monthLabel.onclick = openMonthPicker;
+      if (yearLabel) yearLabel.onclick = openYearPicker;
     }
 
     function updateProgressBar() {
@@ -390,5 +452,25 @@
 
     renderCalendar();
   </script>
+  <!-- Month/Year Picker Popups -->
+  <div id="monthPickerPopup" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:200;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:20px 16px;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);max-width:320px;width:90%;margin:auto;">
+      <h3 style="margin-top:0;">Select Month</h3>
+      <div id="monthPickerBtns" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+      <button onclick="closeMonthPicker()" style="margin-top:16px;width:100%;padding:8px 0;border:none;border-radius:6px;background:#e5e7eb;">Cancel</button>
+    </div>
+  </div>
+  <div id="yearPickerPopup" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:200;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:20px 16px;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);max-width:320px;width:90%;margin:auto;">
+      <h3 style="margin-top:0;">Select Year</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <button id="prevYearRange" style="border:none;background:none;font-size:1.2em;cursor:pointer;">&#8592;</button>
+        <span id="yearRangeLabel"></span>
+        <button id="nextYearRange" style="border:none;background:none;font-size:1.2em;cursor:pointer;">&#8594;</button>
+      </div>
+      <div id="yearPickerBtns" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+      <button onclick="closeYearPicker()" style="margin-top:16px;width:100%;padding:8px 0;border:none;border-radius:6px;background:#e5e7eb;">Cancel</button>
+    </div>
+  </div>
 </body>
 </html>
