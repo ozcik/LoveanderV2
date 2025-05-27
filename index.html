@@ -318,6 +318,16 @@
     function renderCalendar() {
       let firstDay = new Date(currentYear, currentMonth, 1).getDay();
       let daysCount = daysInMonth(currentYear, currentMonth);
+      // Load custom emojis for seasons
+      const seasonEmojis = JSON.parse(localStorage.getItem('seasonEmojis') || '{}');
+      // Determine current season
+      let season = 'winter';
+      if ([2, 3, 4].includes(currentMonth)) season = 'spring';
+      else if ([5, 6, 7].includes(currentMonth)) season = 'summer';
+      else if ([8, 9, 10].includes(currentMonth)) season = 'autumn';
+      // Get emoji for this season
+      const emoji = seasonEmojis[season] || '';
+
       let html = `<div id="monthYearLabel" style="text-align:center;font-size:1.1rem;font-weight:500;margin-bottom:8px;cursor:pointer;">
         <span id="monthLabel" style="text-decoration:underline dotted; cursor:pointer;">${monthNames[currentMonth]}</span>
         <span id="yearLabel" style="text-decoration:underline dotted; cursor:pointer;">${currentYear}</span>
@@ -332,7 +342,13 @@
       for(let day=1; day<=daysCount; day++) {
         let doy = getDayOfYear(2001, currentMonth, day).toString();
         let classes = doneDays.has(doy) ? 'calendar-day done' : 'calendar-day';
-        html += `<td class="${classes}" data-day="${doy}">${day}</td>`;
+        let cellContent = day;
+        if (doneDays.has(doy) && emoji) {
+          // If multiple emojis, reduce font size
+          const fontSize = emoji.length > 2 ? '1.1em' : '1.4em';
+          cellContent = `<span style="font-size:${fontSize};line-height:1;">${emoji}</span>`;
+        }
+        html += `<td class="${classes}" data-day="${doy}">${cellContent}</td>`;
         dayOfWeekCounter++;
         if(dayOfWeekCounter % 7 === 0) html += '</tr><tr>';
       }

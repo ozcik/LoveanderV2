@@ -103,6 +103,22 @@
         <label>Winter: <input type="file" accept="image/*" id="bgWinter"></label>
       </div>
     </div>
+    <div class="settings-section">
+      <label>Custom Completion Emojis for Each Season:</label>
+      <div style="margin-bottom:8px;">
+        <label>Spring: <input type="text" id="emojiSpring" maxlength="8" style="width:4em;text-align:center;" placeholder="🌸"></label>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label>Summer: <input type="text" id="emojiSummer" maxlength="8" style="width:4em;text-align:center;" placeholder="🌞"></label>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label>Autumn: <input type="text" id="emojiAutumn" maxlength="8" style="width:4em;text-align:center;" placeholder="🍂"></label>
+      </div>
+      <div>
+        <label>Winter: <input type="text" id="emojiWinter" maxlength="8" style="width:4em;text-align:center;" placeholder="❄️"></label>
+      </div>
+      <button id="saveEmojis" style="margin-top:10px;padding:6px 16px;border-radius:6px;border:none;background:#38bdf8;color:#fff;cursor:pointer;">Save Emojis</button>
+    </div>
   </div>
   <nav class="bottom-nav">
     <a href="index.html" aria-label="Calendar">
@@ -160,6 +176,27 @@
     handleBgInput('summer', 'bgSummer');
     handleBgInput('autumn', 'bgAutumn');
     handleBgInput('winter', 'bgWinter');
+
+    // Emoji settings logic
+    function loadSeasonEmojis() {
+      const emojis = JSON.parse(localStorage.getItem('seasonEmojis') || '{}');
+      document.getElementById('emojiSpring').value = emojis.spring || '';
+      document.getElementById('emojiSummer').value = emojis.summer || '';
+      document.getElementById('emojiAutumn').value = emojis.autumn || '';
+      document.getElementById('emojiWinter').value = emojis.winter || '';
+    }
+    function saveSeasonEmojis() {
+      const emojis = {
+        spring: document.getElementById('emojiSpring').value.trim(),
+        summer: document.getElementById('emojiSummer').value.trim(),
+        autumn: document.getElementById('emojiAutumn').value.trim(),
+        winter: document.getElementById('emojiWinter').value.trim()
+      };
+      localStorage.setItem('seasonEmojis', JSON.stringify(emojis));
+      alert('Season completion emojis saved!');
+    }
+    document.getElementById('saveEmojis').onclick = saveSeasonEmojis;
+    loadSeasonEmojis();
   </script>
 </body>
 </html>
