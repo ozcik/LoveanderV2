@@ -290,13 +290,74 @@
     .notes-section button:hover {
       background: #0ea5e9;
     }
+    .events-section {
+      margin-top: 32px;
+    }
+    .events-section h3 {
+      color: #101418;
+      font-size: 1.15rem;
+      font-weight: bold;
+      letter-spacing: -0.015em;
+      padding: 0 0 10px 0;
+    }
+    .event-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      min-height: 44px;
+    }
+    .event-card .event-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: #eaedf1;
+      width: 40px;
+      height: 40px;
+      font-size: 1.4em;
+      flex-shrink: 0;
+    }
+    .event-card .event-name {
+      color: #101418;
+      font-size: 1rem;
+      font-weight: 400;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .event-card .event-delete {
+      background: none;
+      border: none;
+      color: #f87171;
+      font-size: 1.2em;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    body.dark-mode .events-section h3 {
+      color: #f4f4f5;
+    }
+    body.dark-mode .event-card {
+      background: #23232b;
+    }
+    body.dark-mode .event-card .event-icon {
+      background: #18181b;
+      color: #f4f4f5;
+    }
+    body.dark-mode .event-card .event-name {
+      color: #f4f4f5;
+    }
   </style>
 </head>
 <body>
     <div class="bg-overlay" style="display:none;"></div>
   <div class="calendar-app">
     <div class="calendar-header">
-      <h1>Offline Calendar</h1>
+      <h1>LOVEANDER</h1>
       <div class="calendar-nav">
         <button id="prevMonth" aria-label="Previous Month">&#8592;</button>
         <button id="nextMonth" aria-label="Next Month">&#8594;</button>
@@ -310,6 +371,15 @@
       <label for="monthNotes" style="font-weight:500;display:block;margin-bottom:8px;">Notes for <span id="notesMonthLabel"></span></label>
       <textarea id="monthNotes" rows="3" style="width:100%;border-radius:8px;border:1px solid #e5e7eb;padding:10px;font-size:1rem;resize:vertical;"></textarea>
       <button id="saveNotesBtn" style="margin-top:8px;padding:7px 18px;border-radius:6px;border:none;background:#38bdf8;color:#fff;cursor:pointer;">Save Notes</button>
+    </div>
+    <div class="events-section" style="margin-top:32px;">
+      <h3 style="font-size:1.15rem;font-weight:bold;letter-spacing:-0.015em;padding:0 0 10px 0;">Events</h3>
+      <div id="eventsList"></div>
+      <form id="addEventForm" style="display:flex;gap:8px;align-items:center;margin-top:12px;">
+        <input id="eventIcon" type="text" maxlength="2" placeholder="🎉" style="width:2.5em;font-size:1.2em;text-align:center;border-radius:6px;border:1px solid #e5e7eb;padding:4px 0;background:#f8fafc;" />
+        <input id="eventName" type="text" maxlength="32" placeholder="Event name" style="flex:1;border-radius:6px;border:1px solid #e5e7eb;padding:4px 8px;background:#f8fafc;" />
+        <button type="submit" style="padding:7px 14px;border-radius:6px;border:none;background:#38bdf8;color:#fff;cursor:pointer;">Add</button>
+      </form>
     </div>
   </div>
 
@@ -705,11 +775,65 @@
       localStorage.setItem(getNotesKey(currentYear, currentMonth), notes);
       alert('Notes saved!');
     };
-    // Call loadMonthNotes after calendar render
-    const originalRenderCalendar = renderCalendar;
+
+    function getEventsKey(year, month) {
+      return `events_${year}_${month}`;
+    }
+    function loadMonthEvents() {
+      const eventsList = document.getElementById('eventsList');
+      eventsList.innerHTML = '';
+      // Example holidays (could be replaced with a real holiday API)
+      const holidays = [
+        { icon: '🎃', name: 'Halloween', month: 9, day: 31 },
+        { icon: '🦃', name: 'Thanksgiving', month: 10, day: 23 },
+        { icon: '🎄', name: 'Christmas', month: 11, day: 25 },
+        { icon: '🎆', name: 'New Year', month: 0, day: 1 }
+      ];
+      holidays.forEach(ev => {
+        if (ev.month === currentMonth) {
+          const div = document.createElement('div');
+          div.className = 'event-card';
+          div.innerHTML = `<div class="event-icon">${ev.icon}</div><div class="event-name">${ev.name}</div>`;
+          eventsList.appendChild(div);
+        }
+      });
+      // Load custom events
+      const events = JSON.parse(localStorage.getItem(getEventsKey(currentYear, currentMonth)) || '[]');
+      events.forEach((ev, idx) => {
+        const div = document.createElement('div');
+        div.className = 'event-card';
+        div.innerHTML = `<div class="event-icon">${ev.icon || '🎉'}</div><div class="event-name">${ev.name}</div><button class="event-delete" title="Delete" data-idx="${idx}">✕</button>`;
+        eventsList.appendChild(div);
+      });
+      // Delete event handler
+      eventsList.querySelectorAll('.event-delete').forEach(btn => {
+        btn.onclick = function() {
+          const idx = +btn.getAttribute('data-idx');
+          events.splice(idx, 1);
+          localStorage.setItem(getEventsKey(currentYear, currentMonth), JSON.stringify(events));
+          loadMonthEvents();
+        };
+      });
+    }
+    document.getElementById('addEventForm').onsubmit = function(e) {
+      e.preventDefault();
+      const icon = document.getElementById('eventIcon').value.trim() || '🎉';
+      const name = document.getElementById('eventName').value.trim();
+      if (!name) return;
+      const events = JSON.parse(localStorage.getItem(getEventsKey(currentYear, currentMonth)) || '[]');
+      events.push({ icon, name });
+      localStorage.setItem(getEventsKey(currentYear, currentMonth), JSON.stringify(events));
+      document.getElementById('eventIcon').value = '';
+      document.getElementById('eventName').value = '';
+      loadMonthEvents();
+    };
+
+    // Call loadMonthEvents after calendar render
+    const origRenderCalendar = renderCalendar;
     renderCalendar = function() {
-      originalRenderCalendar.apply(this, arguments);
+      origRenderCalendar.apply(this, arguments);
       loadMonthNotes();
+      loadMonthEvents();
     };
 
     // On page load, restore last viewed month/year
