@@ -5,29 +5,532 @@
   <title>Offline Calendar PWA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="themes/default.css" id="theme-css" />
+  <style>
+    :root {
+      --main-bg: #fff;
+      --main-contrast: #333;
+      --accent: #38bdf8;
+      --accent-contrast: #fff;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6fb;
+      margin: 0;
+      padding: 0;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: background 0.4s;
+    }
+    .calendar-app {
+      max-width: 420px;
+      margin: 40px auto 80px auto;
+      background: var(--main-bg, #fff);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 24px 20px 32px 20px;
+      position: relative;
+      z-index: 2;
+    }
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .calendar-header h1 {
+      font-size: 1.5rem;
+      margin: 0;
+      font-weight: 600;
+      color: var(--main-contrast, #333);
+      transition: color 0.2s;
+    }
+    #monthYearLabel {
+      color: var(--main-contrast, #333);
+      transition: color 0.2s;
+    }
+    .calendar-nav button {
+      background: var(--main-bg, #e3e8f0);
+      color: var(--main-contrast, #333);
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin: 0 2px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .calendar-nav button:hover {
+      background: var(--accent, #cbd5e1);
+      color: var(--accent-contrast, #fff);
+    }
+    #calendar table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    #calendar th, #calendar td {
+      width: 14.2%;
+      text-align: center;
+      padding: 8px 0;
+      font-size: 1rem;
+    }
+    #calendar th {
+      color: #64748b;
+      font-weight: 500;
+      background: #f1f5f9;
+    }
+    .calendar-day {
+      cursor: pointer;
+      border-radius: 50%;
+      transition: background 0.2s, color 0.2s;
+    }
+    .calendar-day:hover {
+      background: #e0e7ef;
+    }
+    .calendar-day.done {
+      background: var(--accent, #38bdf8);
+      color: var(--accent-contrast, #fff);
+      font-weight: bold;
+    }
+    .progress-container {
+      margin-top: 24px;
+      background: #e5e7eb;
+      border-radius: 8px;
+      height: 14px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8 0%, #06b6d4 100%);
+      width: 0%;
+      transition: width 0.4s;
+    }
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100vw;
+      background: #fff;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
+      transition: background 0.2s;
+    }
+    .bottom-nav a {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0 6px 0;
+      color: #64748b;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s, background 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .bottom-nav a.active {
+      color: #38bdf8;
+      font-weight: bold;
+      background: #e5e7eb;
+      transition: background 0.2s;
+    }
+    .bottom-nav svg {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 2px;
+      display: block;
+    }
+    body.dark-mode .calendar-header h1 {
+      color: var(--main-contrast, #f4f4f5);
+    }
+    body.dark-mode #monthYearLabel {
+      color: var(--main-contrast, #f4f4f5);
+    }
+    body.dark-mode .bottom-nav {
+      background: #18181b;
+      border-top: 1px solid #333;
+    }
+    body.dark-mode .bottom-nav a {
+      color: #a1a1aa;
+    }
+    body.dark-mode .bottom-nav a.active {
+      color: #38bdf8;
+      background: #23232b;
+    }
+    body.dark-mode .bottom-nav svg {
+      color: #a1a1aa;
+    }
+    @media (max-width: 500px) {
+      .calendar-app {
+        padding: 10px 2px 18px 2px;
+        margin-bottom: 80px;
+      }
+      .calendar-header h1 {
+        font-size: 1.1rem;
+      }
+    }
+
+    /* Dark mode styles */
+    body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    body.dark-mode .calendar-app {
+      background: #1e1e2e;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+    body.dark-mode .calendar-header h1 {
+      color: #e0e0e0;
+    }
+    body.dark-mode .calendar-nav button {
+      background: #2c2c3e;
+      color: #e0e0e0;
+    }
+    body.dark-mode .calendar-nav button:hover {
+      background: #38bdf8;
+      color: #18181b;
+    }
+    body.dark-mode #calendar th {
+      background: #2c2c3e;
+      color: #e0e0e0;
+    }
+    body.dark-mode #calendar td {
+      background: #1e1e2e;
+      color: #e0e0e0;
+    }
+    body.dark-mode .calendar-day:hover {
+      background: #2c2c3e;
+    }
+    body.dark-mode .calendar-day.done {
+      background: #38bdf8;
+      color: #18181b;
+    }
+    body.dark-mode .progress-container {
+      background: #333340;
+    }
+    body.dark-mode .progress-bar {
+      background: linear-gradient(90deg, #38bdf8 0%, #06b6d4 100%);
+    }
+    body.dark-mode .bottom-nav {
+      background: #18181b;
+      border-top: 1px solid #333;
+    }
+    body.dark-mode .bottom-nav a {
+      color: #e0e0e0;
+    }
+    body.dark-mode .bottom-nav a.active {
+      color: #38bdf8;
+      background: #23232b;
+    }
+    body.dark-mode .bottom-nav svg {
+      color: #e0e0e0;
+    }
+    .bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(24,24,27,0.55);
+      pointer-events: none;
+      z-index: 1;
+    }
+    body.dark-mode .bg-overlay {
+      display: block;
+    }
+    body:not(.dark-mode) .bg-overlay {
+      display: none;
+    }
+    .notes-section {
+      margin-top: 28px;
+    }
+    .notes-section textarea {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      padding: 10px;
+      font-size: 1rem;
+      resize: vertical;
+      background: #f8fafc;
+      color: #333;
+      box-sizing: border-box;
+      margin-bottom: 6px;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+    }
+    body.dark-mode .notes-section textarea {
+      background: #23232b;
+      color: #f4f4f5;
+      border: 1px solid #333340;
+    }
+    .notes-section label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: 8px;
+      color: #444;
+    }
+    body.dark-mode .notes-section label {
+      color: #e4e4e7;
+    }
+    .notes-section button {
+      margin-top: 8px;
+      padding: 7px 18px;
+      border-radius: 6px;
+      border: none;
+      background: #38bdf8;
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .notes-section button:hover {
+      background: #0ea5e9;
+    }
+    .events-section {
+      margin-top: 32px;
+    }
+    .events-section h3 {
+      color: #101418;
+      font-size: 1.15rem;
+      font-weight: bold;
+      letter-spacing: -0.015em;
+      padding: 0 0 10px 0;
+    }
+    .event-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      min-height: 44px;
+    }
+    .event-card .event-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: #eaedf1;
+      width: 40px;
+      height: 40px;
+      font-size: 1.4em;
+      flex-shrink: 0;
+    }
+    .event-card .event-name {
+      color: #101418;
+      font-size: 1rem;
+      font-weight: 400;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .event-card .event-delete {
+      background: none;
+      border: none;
+      color: #f87171;
+      font-size: 1.2em;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    body.dark-mode .events-section h3 {
+      color: #f4f4f5;
+    }
+    body.dark-mode .event-card {
+      background: #23232b;
+    }
+    body.dark-mode .event-card .event-icon {
+      background: #18181b;
+      color: #f4f4f5;
+    }
+    body.dark-mode .event-card .event-name {
+      color: #f4f4f5;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Offline Calendar PWA</h1>
-    <div>
-      <button id="prevMonth">Previous Month</button>
-      <button id="nextMonth">Next Month</button>
+    <div class="bg-overlay" style="display:none;"></div>
+  <div class="calendar-app">
+    <div class="calendar-header">
+      <h1>LOVEANDER</h1>
+      <div class="calendar-nav">
+        <button id="prevMonth" aria-label="Previous Month">&#8592;</button>
+        <button id="nextMonth" aria-label="Next Month">&#8594;</button>
+      </div>
     </div>
     <div id="calendar"></div>
-
     <div class="progress-container">
       <div class="progress-bar" id="progress-bar"></div>
     </div>
+    <div class="notes-section" style="margin-top:28px;">
+      <label for="monthNotes" style="font-weight:500;display:block;margin-bottom:8px;">Notes for <span id="notesMonthLabel"></span></label>
+      <textarea id="monthNotes" rows="3" style="width:100%;border-radius:8px;border:1px solid #e5e7eb;padding:10px;font-size:1rem;resize:vertical;"></textarea>
+      <button id="saveNotesBtn" style="margin-top:8px;padding:7px 18px;border-radius:6px;border:none;background:#38bdf8;color:#fff;cursor:pointer;">Save Notes</button>
+    </div>
+    <div class="events-section" style="margin-top:32px;">
+      <h3 style="font-size:1.15rem;font-weight:bold;letter-spacing:-0.015em;padding:0 0 10px 0;">Events</h3>
+      <div id="eventsList"></div>
+      <form id="addEventForm" style="display:flex;gap:8px;align-items:center;margin-top:12px;">
+        <input id="eventIcon" type="text" maxlength="2" placeholder="🎉" style="width:2.5em;font-size:1.2em;text-align:center;border-radius:6px;border:1px solid #e5e7eb;padding:4px 0;background:#f8fafc;" />
+        <input id="eventName" type="text" maxlength="32" placeholder="Event name" style="flex:1;border-radius:6px;border:1px solid #e5e7eb;padding:4px 8px;background:#f8fafc;" />
+        <button type="submit" style="padding:7px 14px;border-radius:6px;border:none;background:#38bdf8;color:#fff;cursor:pointer;">Add</button>
+      </form>
+    </div>
   </div>
 
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="index.html" class="active" aria-label="Calendar">
+      <!-- Calendar SVG -->
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="18" rx="4" stroke="currentColor"/>
+        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor"/>
+      </svg>
+      Calendar
+    </a>
+    <a href="progress.html" aria-label="Progress">
+      <!-- Progress SVG -->
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" stroke="currentColor"/>
+        <path d="M12 6v6l4 2" stroke="currentColor"/>
+      </svg>
+      Progress
+    </a>
+    <a href="settings.html" aria-label="Settings">
+      <!-- Settings SVG -->
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3" stroke="currentColor"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      Settings
+    </a>
+  </nav>
   <script>
     // Function to update the seasonal theme CSS based on current month
+    function setAppBgColorFromImage(imgUrl) {
+      const app = document.querySelector('.calendar-app');
+      const title = document.querySelector('.calendar-header h1');
+      const bottomNav = document.querySelector('.bottom-nav');
+      const navLinks = document.querySelectorAll('.bottom-nav a');
+      const navSvgs = document.querySelectorAll('.bottom-nav svg');
+      const root = document.documentElement;
+      const overlay = document.querySelector('.bg-overlay');
+
+      if (!imgUrl) {
+        root.style.setProperty('--main-bg', '#fff');
+        root.style.setProperty('--main-contrast', '#333');
+        root.style.setProperty('--accent', '#38bdf8');
+        root.style.setProperty('--accent-contrast', '#fff');
+        if (title) title.style.color = '#333';
+        setMonthYearColor('#333');
+        if (bottomNav) {
+          bottomNav.style.background = '#fff';
+          navLinks.forEach(a => a.style.color = '#64748b');
+          navSvgs.forEach(svg => svg.style.color = '#64748b');
+        }
+        if (overlay) overlay.style.background = 'rgba(24,24,27,0.55)';
+        return;
+      }
+      const img = new window.Image();
+      img.crossOrigin = "Anonymous";
+      img.src = imgUrl;
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        const bgColor = `rgb(${r},${g},${b})`;
+        root.style.setProperty('--main-bg', bgColor);
+
+        // Calculate YIQ for contrast
+        const yiq = (r*299 + g*587 + b*114) / 1000;
+        let textColor, navBg, navActiveBg, navText, navActiveText, overlayAlpha;
+        if (yiq >= 180) { // bright bg
+          textColor = '#18181b';
+          navBg = '#18181b';
+          navActiveBg = '#23232b';
+          navText = '#a1a1aa';
+          navActiveText = '#38bdf8';
+          overlayAlpha = 0.65;
+        } else { // dark bg
+          textColor = '#f4f4f5';
+          navBg = '#18181b';
+          navActiveBg = '#23232b';
+          navText = '#a1a1aa';
+          navActiveText = '#38bdf8';
+          overlayAlpha = 0.35;
+        }
+        root.style.setProperty('--main-contrast', textColor);
+        root.style.setProperty('--accent', '#38bdf8');
+        root.style.setProperty('--accent-contrast', navBg);
+        if (title) title.style.color = textColor;
+        setMonthYearColor(textColor);
+        if (bottomNav) {
+          bottomNav.style.background = navBg;
+          navLinks.forEach(a => a.style.color = navText);
+          navSvgs.forEach(svg => svg.style.color = navText);
+          // Set active nav color
+          navLinks.forEach(a => {
+            if (a.classList.contains('active')) {
+              a.style.background = navActiveBg;
+              a.style.color = navActiveText;
+            } else {
+              a.style.background = 'transparent';
+            }
+          });
+        }
+        if (overlay) overlay.style.background = `rgba(24,24,27,${overlayAlpha})`;
+      };
+      img.onerror = function() {
+        root.style.setProperty('--main-bg', '#fff');
+        root.style.setProperty('--main-contrast', '#333');
+        root.style.setProperty('--accent', '#38bdf8');
+        root.style.setProperty('--accent-contrast', '#fff');
+        if (title) title.style.color = '#333';
+        setMonthYearColor('#333');
+        if (bottomNav) {
+          bottomNav.style.background = '#fff';
+          navLinks.forEach(a => a.style.color = '#64748b');
+          navSvgs.forEach(svg => svg.style.color = '#64748b');
+        }
+        if (overlay) overlay.style.background = 'rgba(24,24,27,0.55)';
+      };
+    }
+
+    // Helper to set month-year text color after calendar is rendered
+    function setMonthYearColor(color) {
+      const monthYear = document.querySelector('#calendar > div');
+      if (monthYear) monthYear.style.color = color;
+    }
+
+    // Show/hide overlay based on dark mode and background image
+    function updateOverlayVisibility() {
+      const overlay = document.querySelector('.bg-overlay');
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      const bgImages = JSON.parse(localStorage.getItem('seasonBgImages') || '{}');
+      let season = 'winter';
+      if ([2, 3, 4].includes(currentMonth)) season = 'spring';
+      else if ([5, 6, 7].includes(currentMonth)) season = 'summer';
+      else if ([8, 9, 10].includes(currentMonth)) season = 'autumn';
+      if (isDark && bgImages[season]) {
+        overlay.style.display = 'block';
+      } else {
+        overlay.style.display = 'none';
+      }
+    }
+
     function updateTheme(month) {
-      let theme;
-      if ([2, 3, 4].includes(month)) theme = 'spring';
-      else if ([5, 6, 7].includes(month)) theme = 'summer';
-      else if ([8, 9, 10].includes(month)) theme = 'autumn';
-      else theme = 'winter';
+      let theme, season;
+      if ([2, 3, 4].includes(month)) { theme = 'spring'; season = 'spring'; }
+      else if ([5, 6, 7].includes(month)) { theme = 'summer'; season = 'summer'; }
+      else if ([8, 9, 10].includes(month)) { theme = 'autumn'; season = 'autumn'; }
+      else { theme = 'winter'; season = 'winter'; }
 
       let themeLink = document.getElementById('theme-css');
       if (!themeLink) {
@@ -37,6 +540,17 @@
         document.head.appendChild(themeLink);
       }
       themeLink.href = `themes/${theme}.css`;
+
+      // Set background image if set in localStorage
+      const bgImages = JSON.parse(localStorage.getItem('seasonBgImages') || '{}');
+      if (bgImages[season]) {
+        document.body.style.backgroundImage = `url('${bgImages[season]}')`;
+        setAppBgColorFromImage(bgImages[season]);
+      } else {
+        document.body.style.backgroundImage = '';
+        document.querySelector('.calendar-app').style.background = '#fff';
+      }
+      updateOverlayVisibility();
     }
 
     const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -63,7 +577,20 @@
     function renderCalendar() {
       let firstDay = new Date(currentYear, currentMonth, 1).getDay();
       let daysCount = daysInMonth(currentYear, currentMonth);
-      let html = `<h2>${monthNames[currentMonth]} ${currentYear}</h2>`;
+      // Load custom emojis for seasons
+      const seasonEmojis = JSON.parse(localStorage.getItem('seasonEmojis') || '{}');
+      // Determine current season
+      let season = 'winter';
+      if ([2, 3, 4].includes(currentMonth)) season = 'spring';
+      else if ([5, 6, 7].includes(currentMonth)) season = 'summer';
+      else if ([8, 9, 10].includes(currentMonth)) season = 'autumn';
+      // Get emoji for this season
+      const emoji = seasonEmojis[season] || '';
+
+      let html = `<div id="monthYearLabel" style="text-align:center;font-size:1.1rem;font-weight:500;margin-bottom:8px;cursor:pointer;">
+        <span id="monthLabel" style="text-decoration:underline dotted; cursor:pointer;">${monthNames[currentMonth]}</span>
+        <span id="yearLabel" style="text-decoration:underline dotted; cursor:pointer;">${currentYear}</span>
+      </div>`;
       html += `<table><thead><tr>
         <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th>
         <th>Thu</th><th>Fri</th><th>Sat</th></tr></thead><tbody><tr>`;
@@ -74,7 +601,13 @@
       for(let day=1; day<=daysCount; day++) {
         let doy = getDayOfYear(2001, currentMonth, day).toString();
         let classes = doneDays.has(doy) ? 'calendar-day done' : 'calendar-day';
-        html += `<td class="${classes}" data-day="${doy}">${day}</td>`;
+        let cellContent = day;
+        if (doneDays.has(doy) && emoji) {
+          // If multiple emojis, reduce font size
+          const fontSize = emoji.length > 2 ? '1.1em' : '1.4em';
+          cellContent = `<span style="font-size:${fontSize};line-height:1;">${emoji}</span>`;
+        }
+        html += `<td class="${classes}" data-day="${doy}">${cellContent}</td>`;
         dayOfWeekCounter++;
         if(dayOfWeekCounter % 7 === 0) html += '</tr><tr>';
       }
@@ -99,6 +632,69 @@
 
       updateProgressBar();
       updateTheme(currentMonth); // <-- update theme on every render
+      attachMonthYearEvents();
+      updateOverlayVisibility(); // <-- ensure overlay is updated
+    }
+
+    // --- Month/Year Picker Logic ---
+    function openMonthPicker() {
+      const popup = document.getElementById('monthPickerPopup');
+      const btns = document.getElementById('monthPickerBtns');
+      btns.innerHTML = '';
+      monthNames.forEach((name, idx) => {
+        const btn = document.createElement('button');
+        btn.textContent = name;
+        btn.style.cssText = 'padding:8px;border:none;border-radius:6px;background:#e5e7eb;cursor:pointer;';
+        if (idx === currentMonth) btn.style.background = '#38bdf8', btn.style.color = '#fff';
+        btn.onclick = () => {
+          currentMonth = idx;
+          closeMonthPicker();
+          renderCalendar();
+        };
+        btns.appendChild(btn);
+      });
+      popup.style.display = 'flex';
+    }
+    function closeMonthPicker() {
+      document.getElementById('monthPickerPopup').style.display = 'none';
+    }
+
+    let yearPickerStart = currentYear - (currentYear % 12);
+    function openYearPicker() {
+      const popup = document.getElementById('yearPickerPopup');
+      const btns = document.getElementById('yearPickerBtns');
+      const rangeLabel = document.getElementById('yearRangeLabel');
+      btns.innerHTML = '';
+      for (let y = yearPickerStart; y < yearPickerStart + 12; y++) {
+        const btn = document.createElement('button');
+        btn.textContent = y;
+        btn.style.cssText = 'padding:8px;border:none;border-radius:6px;background:#e5e7eb;cursor:pointer;';
+        if (y === currentYear) btn.style.background = '#38bdf8', btn.style.color = '#fff';
+        btn.onclick = () => {
+          currentYear = y;
+          closeYearPicker();
+          renderCalendar();
+        };
+        btns.appendChild(btn);
+      }
+      rangeLabel.textContent = `${yearPickerStart} - ${yearPickerStart + 11}`;
+      popup.style.display = 'flex';
+    }
+    function closeYearPicker() {
+      document.getElementById('yearPickerPopup').style.display = 'none';
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const prev = document.getElementById('prevYearRange');
+      const next = document.getElementById('nextYearRange');
+      if(prev) prev.onclick = function() { yearPickerStart -= 12; openYearPicker(); };
+      if(next) next.onclick = function() { yearPickerStart += 12; openYearPicker(); };
+      updateOverlayVisibility(); // <-- ensure overlay is updated on load
+    });
+    function attachMonthYearEvents() {
+      const monthLabel = document.getElementById('monthLabel');
+      const yearLabel = document.getElementById('yearLabel');
+      if (monthLabel) monthLabel.onclick = openMonthPicker;
+      if (yearLabel) yearLabel.onclick = openYearPicker;
     }
 
     function updateProgressBar() {
@@ -107,21 +703,38 @@
       document.getElementById('progress-bar').style.width = percent + '%';
     }
 
+    // Save current month/year to localStorage
+    function saveCalendarView() {
+      localStorage.setItem('calendarView', JSON.stringify({ year: currentYear, month: currentMonth }));
+    }
+    // Load current month/year from localStorage if available
+    function loadCalendarView() {
+      const view = JSON.parse(localStorage.getItem('calendarView') || 'null');
+      if (view && typeof view.year === 'number' && typeof view.month === 'number') {
+        currentYear = view.year;
+        currentMonth = view.month;
+      } else {
+        currentYear = new Date().getFullYear();
+        currentMonth = new Date().getMonth();
+      }
+    }
+
     document.getElementById('prevMonth').onclick = () => {
       currentMonth--;
       if(currentMonth < 0) {
         currentMonth = 11;
         currentYear--;
       }
+      saveCalendarView();
       renderCalendar();
     };
-
     document.getElementById('nextMonth').onclick = () => {
       currentMonth++;
       if(currentMonth > 11) {
         currentMonth = 0;
         currentYear++;
       }
+      saveCalendarView();
       renderCalendar();
     };
 
@@ -131,7 +744,121 @@
       });
     }
 
+    // --- Dark mode logic (copied from settings.html) ---
+    function applyDarkModeSetting() {
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      document.body.classList.toggle('dark-mode', isDark);
+      if (isDark) {
+        document.documentElement.style.setProperty('--main-bg', '#18181b');
+        document.documentElement.style.setProperty('--main-contrast', '#f4f4f5');
+        document.documentElement.style.setProperty('--accent', '#38bdf8');
+        document.documentElement.style.setProperty('--accent-contrast', '#18181b');
+      } else {
+        document.documentElement.style.setProperty('--main-bg', '#fff');
+        document.documentElement.style.setProperty('--main-contrast', '#333');
+        document.documentElement.style.setProperty('--accent', '#38bdf8');
+        document.documentElement.style.setProperty('--accent-contrast', '#fff');
+      }
+    }
+    applyDarkModeSetting();
+
+    function getNotesKey(year, month) {
+      return `notes_${year}_${month}`;
+    }
+    function loadMonthNotes() {
+      document.getElementById('notesMonthLabel').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+      const notes = localStorage.getItem(getNotesKey(currentYear, currentMonth)) || '';
+      document.getElementById('monthNotes').value = notes;
+    }
+    document.getElementById('saveNotesBtn').onclick = function() {
+      const notes = document.getElementById('monthNotes').value;
+      localStorage.setItem(getNotesKey(currentYear, currentMonth), notes);
+      alert('Notes saved!');
+    };
+
+    function getEventsKey(year, month) {
+      return `events_${year}_${month}`;
+    }
+    function loadMonthEvents() {
+      const eventsList = document.getElementById('eventsList');
+      eventsList.innerHTML = '';
+      // Example holidays (could be replaced with a real holiday API)
+      const holidays = [
+        { icon: '🎃', name: 'Halloween', month: 9, day: 31 },
+        { icon: '🦃', name: 'Thanksgiving', month: 10, day: 23 },
+        { icon: '🎄', name: 'Christmas', month: 11, day: 25 },
+        { icon: '🎆', name: 'New Year', month: 0, day: 1 }
+      ];
+      holidays.forEach(ev => {
+        if (ev.month === currentMonth) {
+          const div = document.createElement('div');
+          div.className = 'event-card';
+          div.innerHTML = `<div class="event-icon">${ev.icon}</div><div class="event-name">${ev.name}</div>`;
+          eventsList.appendChild(div);
+        }
+      });
+      // Load custom events
+      const events = JSON.parse(localStorage.getItem(getEventsKey(currentYear, currentMonth)) || '[]');
+      events.forEach((ev, idx) => {
+        const div = document.createElement('div');
+        div.className = 'event-card';
+        div.innerHTML = `<div class="event-icon">${ev.icon || '🎉'}</div><div class="event-name">${ev.name}</div><button class="event-delete" title="Delete" data-idx="${idx}">✕</button>`;
+        eventsList.appendChild(div);
+      });
+      // Delete event handler
+      eventsList.querySelectorAll('.event-delete').forEach(btn => {
+        btn.onclick = function() {
+          const idx = +btn.getAttribute('data-idx');
+          events.splice(idx, 1);
+          localStorage.setItem(getEventsKey(currentYear, currentMonth), JSON.stringify(events));
+          loadMonthEvents();
+        };
+      });
+    }
+    document.getElementById('addEventForm').onsubmit = function(e) {
+      e.preventDefault();
+      const icon = document.getElementById('eventIcon').value.trim() || '🎉';
+      const name = document.getElementById('eventName').value.trim();
+      if (!name) return;
+      const events = JSON.parse(localStorage.getItem(getEventsKey(currentYear, currentMonth)) || '[]');
+      events.push({ icon, name });
+      localStorage.setItem(getEventsKey(currentYear, currentMonth), JSON.stringify(events));
+      document.getElementById('eventIcon').value = '';
+      document.getElementById('eventName').value = '';
+      loadMonthEvents();
+    };
+
+    // Call loadMonthEvents after calendar render
+    const origRenderCalendar = renderCalendar;
+    renderCalendar = function() {
+      origRenderCalendar.apply(this, arguments);
+      loadMonthNotes();
+      loadMonthEvents();
+    };
+
+    // On page load, restore last viewed month/year
+    loadCalendarView();
     renderCalendar();
   </script>
+  <!-- Month/Year Picker Popups -->
+  <div id="monthPickerPopup" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:200;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:20px 16px;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);max-width:320px;width:90%;margin:auto;">
+      <h3 style="margin-top:0;">Select Month</h3>
+      <div id="monthPickerBtns" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+      <button onclick="closeMonthPicker()" style="margin-top:16px;width:100%;padding:8px 0;border:none;border-radius:6px;background:#e5e7eb;">Cancel</button>
+    </div>
+  </div>
+  <div id="yearPickerPopup" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:200;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:20px 16px;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.12);max-width:320px;width:90%;margin:auto;">
+      <h3 style="margin-top:0;">Select Year</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <button id="prevYearRange" style="border:none;background:none;font-size:1.2em;cursor:pointer;">&#8592;</button>
+        <span id="yearRangeLabel"></span>
+        <button id="nextYearRange" style="border:none;background:none;font-size:1.2em;cursor:pointer;">&#8594;</button>
+      </div>
+      <div id="yearPickerBtns" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+      <button onclick="closeYearPicker()" style="margin-top:16px;width:100%;padding:8px 0;border:none;border-radius:6px;background:#e5e7eb;">Cancel</button>
+    </div>
+  </div>
 </body>
 </html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Progress - Offline Calendar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="themes/default.css" id="theme-css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6fb;
+      margin: 0;
+      padding: 0;
+    }
+    .progress-app {
+      max-width: 420px;
+      margin: 40px auto 80px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 24px 20px 32px 20px;
+      text-align: center;
+    }
+    .progress-bar-container {
+      margin: 32px 0 16px 0;
+      background: #e5e7eb;
+      border-radius: 8px;
+      height: 18px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8 0%, #06b6d4 100%);
+      width: 0%;
+      transition: width 0.4s;
+    }
+    .progress-label {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-top: 12px;
+      color: #333;
+    }
+    .milestones {
+      margin-top: 32px;
+      text-align: left;
+    }
+    .milestones h2 {
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+    .achievement {
+      display: flex;
+      align-items: center;
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      font-size: 1rem;
+      color: #333;
+      opacity: 0.6;
+      transition: opacity 0.3s;
+    }
+    .achievement.achieved {
+      background: #d1fae5;
+      color: #059669;
+      font-weight: bold;
+      opacity: 1;
+    }
+    .achievement .icon {
+      margin-right: 12px;
+      font-size: 1.3em;
+    }
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100vw;
+      background: #fff;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
+    }
+    .bottom-nav a {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0 6px 0;
+      color: #64748b;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s, background 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .bottom-nav a.active {
+      color: #38bdf8;
+      font-weight: bold;
+      background: #e5e7eb;
+    }
+    .bottom-nav svg {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 2px;
+      display: block;
+    }
+    @media (max-width: 500px) {
+      .progress-app {
+        padding: 10px 2px 18px 2px;
+        margin-bottom: 80px;
+      }
+    }
+    /* Dark mode styles */
+    body.dark-mode {
+      background: #18181b;
+      color: #f4f4f5;
+    }
+    body.dark-mode .progress-app {
+      background: #23232b;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    body.dark-mode .progress-bar-container {
+      background: #333340;
+    }
+    body.dark-mode .progress-label {
+      color: #f4f4f5;
+    }
+    body.dark-mode .milestones h2 {
+      color: #38bdf8;
+    }
+    body.dark-mode .achievement {
+      background: #23232b;
+      color: #b3b3b3;
+    }
+    body.dark-mode .achievement.achieved {
+      background: #1e293b;
+      color: #38bdf8;
+    }
+    body.dark-mode .bottom-nav {
+      background: #18181b;
+      border-top: 1px solid #333;
+    }
+    body.dark-mode .bottom-nav a {
+      color: #a1a1aa;
+    }
+    body.dark-mode .bottom-nav a.active {
+      color: #38bdf8;
+      background: #23232b;
+    }
+    body.dark-mode .bottom-nav svg {
+      color: #a1a1aa;
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-app">
+    <h1>Progress</h1>
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="progress-label" id="progress-label">0% completed</div>
+    <div class="milestones" id="milestones">
+      <h2>Milestones & Achievements</h2>
+      <!-- Achievements will be rendered here -->
+    </div>
+  </div>
+  <nav class="bottom-nav">
+    <a href="index.html" aria-label="Calendar">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="18" rx="4" stroke="currentColor"/>
+        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor"/>
+      </svg>
+      Calendar
+    </a>
+    <a href="progress.html" class="active" aria-label="Progress">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" stroke="currentColor"/>
+        <path d="M12 6v6l4 2" stroke="currentColor"/>
+      </svg>
+      Progress
+    </a>
+    <a href="settings.html" aria-label="Settings">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3" stroke="currentColor"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      Settings
+    </a>
+  </nav>
+  <script>
+    // Load progress from localStorage (same logic as index.html)
+    let doneDays = new Set(JSON.parse(localStorage.getItem('doneDays') || "[]"));
+    const totalDays = 365;
+    let percent = (doneDays.size / totalDays) * 100;
+    document.getElementById('progress-bar').style.width = percent + '%';
+    document.getElementById('progress-label').textContent = `${percent.toFixed(1)}% completed`;
+
+    // Milestones and Achievements
+    const milestones = [
+      {
+        key: 'quarter',
+        label: 'Quarterly Achiever',
+        desc: 'Completed 25% of the year',
+        icon: '🏅',
+        achieved: percent >= 25
+      },
+      {
+        key: 'half',
+        label: 'Halfway Hero',
+        desc: 'Completed 50% of the year',
+        icon: '🥈',
+        achieved: percent >= 50
+      },
+      {
+        key: 'threequarters',
+        label: 'Three-Quarter Star',
+        desc: 'Completed 75% of the year',
+        icon: '🥇',
+        achieved: percent >= 75
+      },
+      {
+        key: 'full',
+        label: 'Year Champion',
+        desc: 'Completed 100% of the year',
+        icon: '🏆',
+        achieved: percent >= 100
+      }
+    ];
+
+    // Month achievements
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    const monthDays = [31,28,31,30,31,30,31,31,30,31,30,31];
+    let monthAchievements = [];
+    let daySum = 0;
+    for (let i = 0; i < 12; i++) {
+      let days = monthDays[i];
+      let daysSet = new Set();
+      for (let d = 1; d <= days; d++) {
+        // Use 2001 as base year for dayOfYear calculation (same as index.html)
+        const start = new Date(2001, 0, 0);
+        const current = new Date(2001, i, d);
+        const doy = Math.floor((current - start) / (1000 * 60 * 60 * 24));
+        daysSet.add(doy.toString());
+      }
+      // Check if all days in this month are in doneDays
+      let achieved = Array.from(daysSet).every(doy => doneDays.has(doy));
+      monthAchievements.push({
+        label: `You finished ${monthNames[i]}`,
+        desc: `Marked all days in ${monthNames[i]}`,
+        icon: '📅',
+        achieved
+      });
+      daySum += days;
+    }
+
+    // Render achievements
+    const milestonesDiv = document.getElementById('milestones');
+    milestones.forEach(m => {
+      const div = document.createElement('div');
+      div.className = 'achievement' + (m.achieved ? ' achieved' : '');
+      div.innerHTML = `<span class="icon">${m.icon}</span>
+        <span>
+          <strong>${m.label}</strong><br>
+          <small>${m.desc}</small>
+        </span>`;
+      milestonesDiv.appendChild(div);
+    });
+    monthAchievements.forEach(m => {
+      const div = document.createElement('div');
+      div.className = 'achievement' + (m.achieved ? ' achieved' : '');
+      div.innerHTML = `<span class="icon">${m.icon}</span>
+        <span>
+          <strong>${m.label}</strong><br>
+          <small>${m.desc}</small>
+        </span>`;
+      milestonesDiv.appendChild(div);
+    });
+
+    // --- Dark mode logic (copied from settings.html) ---
+    function applyDarkModeSetting() {
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      document.body.classList.toggle('dark-mode', isDark);
+      if (isDark) {
+        document.documentElement.style.setProperty('--main-bg', '#18181b');
+        document.documentElement.style.setProperty('--main-contrast', '#f4f4f5');
+        document.documentElement.style.setProperty('--accent', '#38bdf8');
+        document.documentElement.style.setProperty('--accent-contrast', '#18181b');
+      } else {
+        document.documentElement.style.setProperty('--main-bg', '#fff');
+        document.documentElement.style.setProperty('--main-contrast', '#333');
+        document.documentElement.style.setProperty('--accent', '#38bdf8');
+        document.documentElement.style.setProperty('--accent-contrast', '#fff');
+      }
+    }
+    applyDarkModeSetting();
+    // ...existing code...
+  </script>
+</body>
+</html>
+
+
